@@ -1,6 +1,35 @@
 import { Link } from "react-router-dom";
+import { useEffect, useRef } from "react";
 
 function Home() {
+  const videoSrc = `${import.meta.env.BASE_URL}videos/india-theme.mp4`;
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    const videoEl = videoRef.current;
+    if (!videoEl) {
+      return;
+    }
+
+    const tryPlay = () => {
+      const playPromise = videoEl.play();
+      if (playPromise?.catch) {
+        playPromise.catch(() => {
+          // Autoplay can be blocked; leave muted/inline so user interaction will start it.
+        });
+      }
+    };
+
+    tryPlay();
+    videoEl.addEventListener("loadedmetadata", tryPlay);
+    videoEl.addEventListener("canplay", tryPlay);
+
+    return () => {
+      videoEl.removeEventListener("loadedmetadata", tryPlay);
+      videoEl.removeEventListener("canplay", tryPlay);
+    };
+  }, []);
+
   const highlights = [
     {
       title: "Live Integrity Monitoring",
@@ -23,13 +52,16 @@ function Home() {
     <section className="page">
       <div className="hero-card">
         <video
+          ref={videoRef}
           className="hero-video-bg"
-          src="/videos/india-theme.mp4"
           autoPlay
           muted
           loop
           playsInline
+          preload="auto"
+          aria-hidden="true"
         >
+          <source src={videoSrc} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
         <div className="hero-overlay" />
